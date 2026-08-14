@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QIAN Studio AI</title>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            color: #111;
+        }
+
+        .app {
+            min-height: 100vh;
+            padding: 24px 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-top: 20px;
+        }
+
+        .subtitle {
+            margin-top: 8px;
+            color: #777;
+            font-size: 15px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 24px;
+            margin-top: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        .card h1 {
+            margin: 0 0 10px;
+            font-size: 24px;
+        }
+
+        .card p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .button {
+            width: 100%;
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            margin-top: 20px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            background: #111;
+            color: white;
+        }
+
+        .button:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <div class="logo">QIAN</div>
+
+    <div class="subtitle">
+        Studio AI
+    </div>
+
+    <div class="card">
+
+        <h1>Создавайте визуал для товара</h1>
+
+        <p>
+            Загрузите фотографию товара,
+            а QIAN поможет превратить её
+            в готовый коммерческий визуал.
+        </p>
+
+        <button class="button" onclick="startApp()">
+            Начать
+        </button>
+
+    </div>
+
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+
+    tg.ready();
+    tg.expand();
+
+    function startApp() {
+        tg.showAlert("Добро пожаловать в QIAN Studio AI!");
+    }
+</script>
+
+</body>
+</html>
