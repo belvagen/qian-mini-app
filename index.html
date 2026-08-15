@@ -287,19 +287,22 @@
 
     const fileInput = document.getElementById("fileInput");
     const preview = document.getElementById("preview");
+    let selectedFile = null;
     const previewImage = document.getElementById("previewImage");
     const options = document.getElementById("options");
     const continueButton = document.getElementById("continueButton");
 
     fileInput.addEventListener("change", function() {
 
-        const file = this.files[0];
+    const file = this.files[0];
 
-        if (!file) {
-            return;
-        }
+    if (!file) {
+        return;
+    }
 
-        const imageURL = URL.createObjectURL(file);
+    selectedFile = file;
+
+    const imageURL = URL.createObjectURL(file);
 
         previewImage.src = imageURL;
 
@@ -323,10 +326,24 @@
 
     async function continueApp() {
 
+    if (!selectedFile) {
+
+        tg.showAlert(
+            "Сначала выберите фотографию."
+        );
+
+        return;
+    }
+
     try {
 
+        const formData = new FormData();
+
+        formData.append("image", selectedFile);
+
         const response = await fetch("/api/test", {
-            method: "POST"
+            method: "POST",
+            body: formData
         });
 
         const result = await response.json();
@@ -334,16 +351,26 @@
         if (result.success) {
 
             tg.showAlert(
-                "Фото успешно передано в QIAN!"
+                "QIAN получил вашу фотографию!"
             );
 
         } else {
 
             tg.showAlert(
-                "Не удалось обработать запрос."
+                "Не удалось передать фотографию."
             );
 
         }
+
+    } catch (error) {
+
+        console.error(error);
+
+        tg.showAlert(
+            "Ошибка соединения с QIAN."
+        );
+    }
+}
 
     } catch (error) {
 
