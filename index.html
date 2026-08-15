@@ -321,12 +321,39 @@
         element.classList.add("active");
     }
 
-    function continueApp() {
+    async function continueApp() {
+
+    try {
+
+        const response = await fetch("/api/test", {
+            method: "POST"
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+
+            tg.showAlert(
+                "Фото успешно передано в QIAN!"
+            );
+
+        } else {
+
+            tg.showAlert(
+                "Не удалось обработать запрос."
+            );
+
+        }
+
+    } catch (error) {
 
         tg.showAlert(
-            "Отлично! Следующим шагом QIAN подготовит изображение."
+            "Ошибка соединения с QIAN."
         );
+
+        console.error(error);
     }
+}
 
 </script>
 
