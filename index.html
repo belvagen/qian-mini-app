@@ -292,7 +292,7 @@
     const options = document.getElementById("options");
     const continueButton = document.getElementById("continueButton");
 
-    fileInput.addEventListener("change", function() {
+   fileInput.addEventListener("change", function() {
 
     const file = this.files[0];
 
@@ -304,16 +304,16 @@
 
     const imageURL = URL.createObjectURL(file);
 
-        previewImage.src = imageURL;
+    previewImage.src = imageURL;
 
-        preview.style.display = "block";
-        options.style.display = "block";
-        continueButton.style.display = "block";
+    preview.style.display = "block";
+    options.style.display = "block";
+    continueButton.style.display = "block";
 
-        preview.scrollIntoView({
-            behavior: "smooth"
-        });
+    preview.scrollIntoView({
+        behavior: "smooth"
     });
+});
 
     function selectOption(element) {
 
