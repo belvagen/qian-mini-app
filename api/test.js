@@ -7,8 +7,15 @@ export default async function handler(request, response) {
         });
     }
 
+    const contentType = request.headers["content-type"] || "";
+
+    const hasImage = contentType.includes("multipart/form-data");
+
     return response.status(200).json({
         success: true,
-        message: "QIAN получил изображение"
+        imageReceived: hasImage,
+        message: hasImage
+            ? "QIAN получил фотографию"
+            : "QIAN получил запрос без фотографии"
     });
 }
