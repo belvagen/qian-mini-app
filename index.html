@@ -466,16 +466,77 @@
 
     // Continue
 
-    function continueApp() {
+    async function continueApp() {
 
-        if (!selectedFile) {
+    if (!selectedFile) {
+
+        tg.showAlert(
+            "Сначала выберите фотографию."
+        );
+
+        return;
+    }
+
+    continueButton.disabled = true;
+    continueButton.textContent = "Загрузка...";
+
+    try {
+
+        const formData = new FormData();
+
+        formData.append(
+            "image",
+            selectedFile
+        );
+
+        const response = await fetch(
+            "/api/upload",
+            {
+                method: "POST",
+                body: formData
+            }
+        );
+
+        const result =
+            await response.json();
+
+        console.log(
+            "Ответ QIAN:",
+            result
+        );
+
+        if (result.success) {
 
             tg.showAlert(
-                "Сначала выберите фотографию."
+                "Фото получено сервером QIAN!"
             );
 
-            return;
+        } else {
+
+            tg.showAlert(
+                result.message ||
+                "Не удалось загрузить фото."
+            );
         }
+
+    } catch (error) {
+
+        console.error(
+            "Ошибка загрузки:",
+            error
+        );
+
+        tg.showAlert(
+            "Ошибка соединения с QIAN."
+        );
+
+    } finally {
+
+        continueButton.disabled = false;
+        continueButton.textContent =
+            "Продолжить →";
+    }
+}
 
 
         tg.showAlert(
