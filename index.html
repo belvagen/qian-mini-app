@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
     <style>
+
         * {
             box-sizing: border-box;
         }
@@ -21,7 +23,7 @@
 
         .app {
             min-height: 100vh;
-            padding: 24px 18px 35px;
+            padding: 24px 18px 40px;
         }
 
         .header {
@@ -37,8 +39,8 @@
         }
 
         .version {
-            font-size: 12px;
             color: #999;
+            font-size: 12px;
         }
 
         .hero {
@@ -57,14 +59,13 @@
             font-size: 16px;
             line-height: 1.5;
             color: #777;
-            max-width: 340px;
         }
 
         .upload-card {
             margin-top: 30px;
+            padding: 26px 20px;
             background: white;
             border-radius: 24px;
-            padding: 26px 20px;
             text-align: center;
             box-shadow: 0 5px 25px rgba(0,0,0,0.05);
         }
@@ -75,9 +76,11 @@
             margin: 0 auto 18px;
             border-radius: 18px;
             background: #f1f1ef;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             font-size: 30px;
         }
 
@@ -97,42 +100,47 @@
             width: 100%;
             margin-top: 22px;
             padding: 16px;
-            border: none;
+
             border-radius: 15px;
             background: #111;
             color: white;
+
             font-size: 16px;
             font-weight: 600;
+
             cursor: pointer;
         }
 
-        .upload-button:active {
-            transform: scale(0.98);
-        }
-
-        input[type="file"] {
+        #fileInput {
             display: none;
         }
 
         .preview {
             display: none;
             margin-top: 25px;
+            padding: 15px;
+
             background: white;
             border-radius: 24px;
-            padding: 15px;
+
             box-shadow: 0 5px 25px rgba(0,0,0,0.05);
         }
 
         .preview img {
+            display: block;
+
             width: 100%;
             max-height: 400px;
+
             object-fit: contain;
+
             border-radius: 17px;
             background: #f1f1ef;
         }
 
         .preview-title {
-            margin: 17px 0 0;
+            margin-top: 15px;
+
             font-size: 18px;
             font-weight: 700;
         }
@@ -143,17 +151,20 @@
         }
 
         .options h2 {
-            font-size: 20px;
             margin-bottom: 14px;
+            font-size: 20px;
         }
 
         .option {
-            background: white;
-            border-radius: 16px;
             padding: 17px;
             margin-bottom: 10px;
-            cursor: pointer;
+
+            background: white;
+            border-radius: 16px;
+
             border: 2px solid transparent;
+
+            cursor: pointer;
         }
 
         .option.active {
@@ -161,29 +172,38 @@
         }
 
         .option-title {
-            font-weight: 600;
             font-size: 16px;
+            font-weight: 600;
         }
 
         .option-description {
             margin-top: 5px;
+
             font-size: 13px;
             color: #888;
         }
 
         .continue-button {
             display: none;
+
             width: 100%;
             margin-top: 20px;
             padding: 17px;
+
             border: none;
             border-radius: 15px;
+
             background: #111;
             color: white;
+
             font-size: 16px;
             font-weight: 600;
+
+            cursor: pointer;
         }
+
     </style>
+
 </head>
 
 <body>
@@ -191,35 +211,56 @@
 <div class="app">
 
     <div class="header">
-        <div class="logo">QIAN</div>
-        <div class="version">Studio AI</div>
+
+        <div class="logo">
+            QIAN
+        </div>
+
+        <div class="version">
+            Studio AI
+        </div>
+
     </div>
 
+
     <div class="hero">
-        <h1>Создайте новое<br>изображение</h1>
+
+        <h1>
+            Создайте новое<br>
+            изображение
+        </h1>
 
         <p>
             Загрузите фотографию товара,
             а QIAN подготовит визуал
             для вашего магазина.
         </p>
+
     </div>
+
 
     <div class="upload-card">
 
         <div class="upload-icon">
-            ＋
+            +
         </div>
 
-        <h2>Загрузите товар</h2>
+        <h2>
+            Загрузите товар
+        </h2>
 
         <p>
             JPG или PNG · до 10 МБ
         </p>
 
-        <label for="fileInput" class="upload-button">
+
+        <label
+            for="fileInput"
+            class="upload-button"
+        >
             Выбрать фотографию
         </label>
+
 
         <input
             id="fileInput"
@@ -229,9 +270,17 @@
 
     </div>
 
-    <div class="preview" id="preview">
 
-        <img id="previewImage" src="" alt="Товар">
+    <div
+        class="preview"
+        id="preview"
+    >
+
+        <img
+            id="previewImage"
+            src=""
+            alt="Товар"
+        >
 
         <div class="preview-title">
             Ваш товар
@@ -239,38 +288,70 @@
 
     </div>
 
-    <div class="options" id="options">
 
-        <h2>Что создать?</h2>
+    <div
+        class="options"
+        id="options"
+    >
 
-        <div class="option active" onclick="selectOption(this)">
+        <h2>
+            Что создать?
+        </h2>
+
+
+        <div
+            class="option active"
+            onclick="selectOption(this)"
+        >
+
             <div class="option-title">
                 Фото на модели
             </div>
+
             <div class="option-description">
                 Покажем товар на подходящей модели
             </div>
+
         </div>
 
-        <div class="option" onclick="selectOption(this)">
+
+        <div
+            class="option"
+            onclick="selectOption(this)"
+        >
+
             <div class="option-title">
                 Предметное фото
             </div>
+
             <div class="option-description">
                 Создадим профессиональную съёмку товара
             </div>
+
         </div>
 
-        <div class="option" onclick="selectOption(this)">
+
+        <div
+            class="option"
+            onclick="selectOption(this)"
+        >
+
             <div class="option-title">
                 Фото для карточки
             </div>
+
             <div class="option-description">
                 Подготовим визуал для маркетплейса
             </div>
+
         </div>
 
-        <button class="continue-button" id="continueButton" onclick="continueApp()">
+
+        <button
+            class="continue-button"
+            id="continueButton"
+            onclick="continueApp()"
+        >
             Продолжить →
         </button>
 
@@ -278,111 +359,133 @@
 
 </div>
 
+
 <script>
+
+    // Telegram
 
     const tg = window.Telegram.WebApp;
 
     tg.ready();
     tg.expand();
 
-    const fileInput = document.getElementById("fileInput");
-    const preview = document.getElementById("preview");
+
+    // Elements
+
+    const fileInput =
+        document.getElementById("fileInput");
+
+    const preview =
+        document.getElementById("preview");
+
+    const previewImage =
+        document.getElementById("previewImage");
+
+    const options =
+        document.getElementById("options");
+
+    const continueButton =
+        document.getElementById("continueButton");
+
+
+    // Selected file
+
     let selectedFile = null;
-    const previewImage = document.getElementById("previewImage");
-    const options = document.getElementById("options");
-    const continueButton = document.getElementById("continueButton");
 
-   fileInput.addEventListener("change", function() {
 
-    const file = this.files[0];
+    // File selection
 
-    if (!file) {
-        return;
-    }
+    fileInput.addEventListener(
+        "change",
+        function () {
 
-    selectedFile = file;
+            const file =
+                fileInput.files[0];
 
-    const imageURL = URL.createObjectURL(file);
+            if (!file) {
+                return;
+            }
 
-    previewImage.src = imageURL;
 
-    preview.style.display = "block";
-    options.style.display = "block";
-    continueButton.style.display = "block";
+            selectedFile = file;
 
-    preview.scrollIntoView({
-        behavior: "smooth"
-    });
-});
+
+            const imageURL =
+                URL.createObjectURL(file);
+
+
+            previewImage.src =
+                imageURL;
+
+
+            preview.style.display =
+                "block";
+
+
+            options.style.display =
+                "block";
+
+
+            continueButton.style.display =
+                "block";
+
+
+            preview.scrollIntoView({
+                behavior: "smooth"
+            });
+
+        }
+    );
+
+
+    // Option selection
 
     function selectOption(element) {
 
-        document.querySelectorAll(".option").forEach(function(option) {
-            option.classList.remove("active");
-        });
+        const allOptions =
+            document.querySelectorAll(".option");
 
-        element.classList.add("active");
-    }
 
-    async function continueApp() {
+        allOptions.forEach(
+            function (option) {
 
-    if (!selectedFile) {
+                option.classList.remove(
+                    "active"
+                );
 
-        tg.showAlert(
-            "Сначала выберите фотографию."
+            }
         );
 
-        return;
+
+        element.classList.add(
+            "active"
+        );
+
     }
 
-    try {
 
-        const formData = new FormData();
+    // Continue
 
-        formData.append("image", selectedFile);
+    function continueApp() {
 
-        const response = await fetch("/api/test", {
-            method: "POST",
-            body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
+        if (!selectedFile) {
 
             tg.showAlert(
-                "QIAN получил вашу фотографию!"
+                "Сначала выберите фотографию."
             );
 
-        } else {
-
-            tg.showAlert(
-                "Не удалось передать фотографию."
-            );
-
+            return;
         }
 
-    } catch (error) {
-
-        console.error(error);
 
         tg.showAlert(
-            "Ошибка соединения с QIAN."
-        );
-    }
-}
-
-    } catch (error) {
-
-        tg.showAlert(
-            "Ошибка соединения с QIAN."
+            "Фотография выбрана. QIAN готов к следующему шагу."
         );
 
-        console.error(error);
     }
-}
 
 </script>
 
 </body>
+
 </html>
