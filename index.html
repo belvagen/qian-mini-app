@@ -2,11 +2,18 @@
 <html lang="ru">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>QIAN Studio AI</title>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 
     <style>
 
@@ -14,201 +21,335 @@
             box-sizing: border-box;
         }
 
+
         body {
+
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
             background: #f7f7f5;
+
             color: #111;
         }
 
+
         .app {
+
             min-height: 100vh;
-            padding: 24px 18px 40px;
+
+            padding:
+                24px
+                18px
+                40px;
         }
 
+
         .header {
+
             display: flex;
-            justify-content: space-between;
+
+            justify-content:
+                space-between;
+
             align-items: center;
         }
 
+
         .logo {
+
             font-size: 27px;
+
             font-weight: 800;
+
             letter-spacing: 4px;
         }
 
+
         .version {
+
             color: #999;
+
             font-size: 12px;
         }
 
+
         .hero {
+
             margin-top: 45px;
         }
 
+
         .hero h1 {
+
             margin: 0;
+
             font-size: 31px;
+
             line-height: 1.08;
+
             letter-spacing: -1px;
         }
 
+
         .hero p {
+
             margin-top: 15px;
+
             font-size: 16px;
+
             line-height: 1.5;
+
             color: #777;
         }
 
+
         .upload-card {
+
             margin-top: 30px;
-            padding: 26px 20px;
+
+            padding:
+                26px
+                20px;
+
             background: white;
+
             border-radius: 24px;
+
             text-align: center;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.05);
+
+            box-shadow:
+                0 5px 25px
+                rgba(0,0,0,0.05);
         }
 
+
         .upload-icon {
+
             width: 62px;
+
             height: 62px;
-            margin: 0 auto 18px;
+
+            margin:
+                0
+                auto
+                18px;
+
             border-radius: 18px;
+
             background: #f1f1ef;
 
             display: flex;
+
             align-items: center;
+
             justify-content: center;
 
             font-size: 30px;
         }
 
+
         .upload-card h2 {
+
             margin: 0;
+
             font-size: 20px;
         }
 
+
         .upload-card p {
-            margin: 9px 0 0;
+
+            margin:
+                9px
+                0
+                0;
+
             color: #888;
+
             font-size: 14px;
         }
 
+
         .upload-button {
+
             display: block;
+
             width: 100%;
+
             margin-top: 22px;
+
             padding: 16px;
 
             border-radius: 15px;
+
             background: #111;
+
             color: white;
 
             font-size: 16px;
+
             font-weight: 600;
 
             cursor: pointer;
         }
 
+
         #fileInput {
+
             display: none;
         }
 
+
         .preview {
+
             display: none;
+
             margin-top: 25px;
+
             padding: 15px;
 
             background: white;
+
             border-radius: 24px;
 
-            box-shadow: 0 5px 25px rgba(0,0,0,0.05);
+            box-shadow:
+                0 5px 25px
+                rgba(0,0,0,0.05);
         }
 
+
         .preview img {
+
             display: block;
 
             width: 100%;
+
             max-height: 400px;
 
             object-fit: contain;
 
             border-radius: 17px;
+
             background: #f1f1ef;
         }
 
+
         .preview-title {
+
             margin-top: 15px;
 
             font-size: 18px;
+
             font-weight: 700;
         }
 
+
         .options {
+
             display: none;
+
             margin-top: 25px;
         }
 
+
         .options h2 {
+
             margin-bottom: 14px;
+
             font-size: 20px;
         }
 
+
         .option {
+
             padding: 17px;
+
             margin-bottom: 10px;
 
             background: white;
+
             border-radius: 16px;
 
-            border: 2px solid transparent;
+            border:
+                2px solid
+                transparent;
 
             cursor: pointer;
         }
 
+
         .option.active {
+
             border-color: #111;
         }
 
+
         .option-title {
+
             font-size: 16px;
+
             font-weight: 600;
         }
 
+
         .option-description {
+
             margin-top: 5px;
 
             font-size: 13px;
+
             color: #888;
         }
 
+
         .continue-button {
+
             display: none;
 
             width: 100%;
+
             margin-top: 20px;
+
             padding: 17px;
 
             border: none;
+
             border-radius: 15px;
 
             background: #111;
+
             color: white;
 
             font-size: 16px;
+
             font-weight: 600;
 
             cursor: pointer;
+        }
+
+
+        .continue-button:disabled {
+
+            opacity: 0.6;
+
+            cursor: default;
         }
 
     </style>
 
 </head>
 
+
 <body>
 
+
 <div class="app">
+
 
     <div class="header">
 
@@ -226,14 +367,20 @@
     <div class="hero">
 
         <h1>
+
             Создайте новое<br>
+
             изображение
+
         </h1>
 
+
         <p>
+
             Загрузите фотографию товара,
             а QIAN подготовит визуал
             для вашего магазина.
+
         </p>
 
     </div>
@@ -241,16 +388,25 @@
 
     <div class="upload-card">
 
+
         <div class="upload-icon">
+
             +
+
         </div>
 
+
         <h2>
+
             Загрузите товар
+
         </h2>
 
+
         <p>
+
             JPG или PNG · до 10 МБ
+
         </p>
 
 
@@ -258,7 +414,9 @@
             for="fileInput"
             class="upload-button"
         >
+
             Выбрать фотографию
+
         </label>
 
 
@@ -268,6 +426,7 @@
             accept="image/jpeg,image/png,image/webp"
         >
 
+
     </div>
 
 
@@ -276,15 +435,20 @@
         id="preview"
     >
 
+
         <img
             id="previewImage"
             src=""
             alt="Товар"
         >
 
+
         <div class="preview-title">
+
             Ваш товар
+
         </div>
+
 
     </div>
 
@@ -294,8 +458,11 @@
         id="options"
     >
 
+
         <h2>
+
             Что создать?
+
         </h2>
 
 
@@ -305,11 +472,17 @@
         >
 
             <div class="option-title">
+
                 Фото на модели
+
             </div>
 
+
             <div class="option-description">
-                Покажем товар на подходящей модели
+
+                Покажем товар
+                на подходящей модели
+
             </div>
 
         </div>
@@ -321,11 +494,17 @@
         >
 
             <div class="option-title">
+
                 Предметное фото
+
             </div>
 
+
             <div class="option-description">
-                Создадим профессиональную съёмку товара
+
+                Создадим
+                профессиональную съёмку товара
+
             </div>
 
         </div>
@@ -337,11 +516,17 @@
         >
 
             <div class="option-title">
+
                 Фото для карточки
+
             </div>
 
+
             <div class="option-description">
-                Подготовим визуал для маркетплейса
+
+                Подготовим визуал
+                для маркетплейса
+
             </div>
 
         </div>
@@ -352,66 +537,138 @@
             id="continueButton"
             onclick="continueApp()"
         >
+
             Продолжить →
+
         </button>
 
+
     </div>
+
 
 </div>
 
 
+
 <script>
 
-    // Telegram
 
-    const tg = window.Telegram.WebApp;
+    /*
+     * Telegram
+     */
+
+    const tg =
+        window.Telegram.WebApp;
+
 
     tg.ready();
+
     tg.expand();
 
 
-    // Elements
+
+    /*
+     * Elements
+     */
 
     const fileInput =
-        document.getElementById("fileInput");
+        document.getElementById(
+            "fileInput"
+        );
+
 
     const preview =
-        document.getElementById("preview");
+        document.getElementById(
+            "preview"
+        );
+
 
     const previewImage =
-        document.getElementById("previewImage");
+        document.getElementById(
+            "previewImage"
+        );
+
 
     const options =
-        document.getElementById("options");
+        document.getElementById(
+            "options"
+        );
+
 
     const continueButton =
-        document.getElementById("continueButton");
+        document.getElementById(
+            "continueButton"
+        );
 
 
-    // Selected file
+
+    /*
+     * Current session
+     */
 
     let selectedFile = null;
 
+    let uploadedImageId = null;
 
-    // File selection
+
+
+    /*
+     * Select image
+     */
 
     fileInput.addEventListener(
         "change",
         function () {
 
+
             const file =
                 fileInput.files[0];
 
+
             if (!file) {
+
                 return;
+
             }
 
 
-            selectedFile = file;
+            /*
+             * Check file size
+             */
 
+            const maxSize =
+                10 * 1024 * 1024;
+
+
+            if (file.size > maxSize) {
+
+                tg.showAlert(
+                    "Фотография слишком большая. Максимальный размер — 10 МБ."
+                );
+
+                fileInput.value = "";
+
+                return;
+
+            }
+
+
+            /*
+             * Remember file
+             */
+
+            selectedFile =
+                file;
+
+
+            /*
+             * Preview
+             */
 
             const imageURL =
-                URL.createObjectURL(file);
+                URL.createObjectURL(
+                    file
+                );
 
 
             previewImage.src =
@@ -438,12 +695,20 @@
     );
 
 
-    // Option selection
 
-    function selectOption(element) {
+    /*
+     * Select task
+     */
+
+    function selectOption(
+        element
+    ) {
+
 
         const allOptions =
-            document.querySelectorAll(".option");
+            document.querySelectorAll(
+                ".option"
+            );
 
 
         allOptions.forEach(
@@ -464,81 +729,144 @@
     }
 
 
-    // Continue
 
-   async function continueApp() {
+    /*
+     * Upload image
+     */
 
-    if (!selectedFile) {
+    async function continueApp() {
 
-        tg.showAlert(
-            "Сначала выберите фотографию."
-        );
 
-        return;
-    }
-
-    continueButton.disabled = true;
-    continueButton.textContent = "Загрузка...";
-
-    try {
-
-        const formData = new FormData();
-
-        formData.append(
-            "image",
-            selectedFile
-        );
-
-        const response = await fetch(
-            "/api/upload",
-            {
-                method: "POST",
-                body: formData
-            }
-        );
-
-        const result =
-            await response.json();
-
-        console.log(
-            "Ответ QIAN:",
-            result
-        );
-
-        if (result.success) {
+        if (!selectedFile) {
 
             tg.showAlert(
-                "Фото получено сервером QIAN!"
+                "Сначала выберите фотографию."
             );
 
-        } else {
+            return;
 
-            tg.showAlert(
-                result.message ||
-                "Не удалось загрузить фото."
-            );
         }
 
-    } catch (error) {
 
-        console.error(
-            "Ошибка загрузки:",
-            error
-        );
+        continueButton.disabled =
+            true;
 
-        tg.showAlert(
-            "Ошибка соединения с QIAN."
-        );
 
-    } finally {
-
-        continueButton.disabled = false;
         continueButton.textContent =
-            "Продолжить →";
+            "Загрузка...";
+
+
+        try {
+
+
+            const formData =
+                new FormData();
+
+
+            formData.append(
+                "image",
+                selectedFile
+            );
+
+
+            const response =
+                await fetch(
+                    "/api/upload",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            const result =
+                await response.json();
+
+
+            console.log(
+                "QIAN upload response:",
+                result
+            );
+
+
+            if (
+                result.success &&
+                result.file &&
+                result.file.key
+            ) {
+
+
+                /*
+                 * Save image ID
+                 */
+
+                uploadedImageId =
+                    result.file.key;
+
+
+                /*
+                 * Save for this browser session
+                 */
+
+                sessionStorage.setItem(
+                    "qian_image_id",
+                    uploadedImageId
+                );
+
+
+                console.log(
+                    "QIAN image ID:",
+                    uploadedImageId
+                );
+
+
+                tg.showAlert(
+                    "Фото загружено ✓"
+                );
+
+
+            } else {
+
+
+                tg.showAlert(
+                    result.message ||
+                    "Не удалось сохранить фотографию."
+                );
+
+            }
+
+
+        } catch (error) {
+
+
+            console.error(
+                "QIAN upload error:",
+                error
+            );
+
+
+            tg.showAlert(
+                "Ошибка соединения с QIAN."
+            );
+
+
+        } finally {
+
+
+            continueButton.disabled =
+                false;
+
+
+            continueButton.textContent =
+                "Продолжить →";
+
+        }
+
     }
-}
+
 
 </script>
+
 
 </body>
 
