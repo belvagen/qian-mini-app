@@ -1,71 +1,113 @@
 import OpenAI, { toFile } from "openai";
+import {
+    S3Client,
+    GetObjectCommand,
+} from "@aws-sdk/client-s3";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.OPENAI_API_KEY,
 });
 
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Method not allowed",
-    });
-  }
+const s3 = new S3Client({
+    region: "auto",
+    endpoint: process.env.R2_ENDPOINT,
+    credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    },
+});
 
-  try {
-    const { prompt, imageUrl } = req.body;
+export default async function handler(request, response) {
 
-    if (!prompt) {
-      return res.status(400).json({
-        error: "Prompt is required",
-      });
+    if (request.method !== "POST") {
+        return response.status(405).json({
+            success: false,
+            message: "Используйте POST-запрос",
+        });
     }
 
-    if (!imageUrl) {
-      return res.status(400).json({
-        error: "imageUrl is required",
-      });
+    try {
+
+        const { prompt, imageKey } = request.body;
+
+        if (!prompt) {
+            return response.status(400).json({
+                success: false,
+                message: "Не указан prompt",
+            });
+        }
+
+        if (!imageKey) {
+            return response.status(400).json({
+                success: false,
+                message: "Не указан imageKey",
+            });
+        }
+
+        // Получаем фотографию из R2
+        const object = await s3.send(
+            new GetObjectCommand({
+                Bucket: "qian-images",
+                Key: imageKey,
+            })
+        );
+
+        if (!object.Body) {
+            throw new Error("Фотография не найдена в R2");
+        }
+
+        // Преобразуем файл R2 в Buffer
+        const imageBuffer = Buffer.from(
+            await object.Body.transformToByteArray()
+        );
+
+        // Определяем тип изображения
+        const contentType =
+            object.ContentType || "image/jpeg";
+
+        // Превращаем Buffer в файл для OpenAI
+        const imageFile = await toFile(
+            imageBuffer,
+            "qian-image",
+            {
+                type: contentType,
+            }
+        );
+
+        console.log("Отправляем изображение в GPT Image 2");
+
+        // Редактируем изображение через GPT Image 2
+        const result = await openai.images.edit({
+            model: "gpt-image-2",
+            image: imageFile,
+            prompt: prompt,
+        });
+
+        return response.status(200).json({
+
+            success: true,
+
+            message: "Изображение создано",
+
+            data: result.data,
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "GPT Image 2 error:",
+            error
+        );
+
+        return response.status(500).json({
+
+            success: false,
+
+            message:
+                error.message ||
+                "Ошибка генерации изображения",
+
+        });
     }
-
-    // Загружаем исходную фотографию из R2
-    const imageResponse = await fetch(imageUrl);
-
-    if (!imageResponse.ok) {
-      throw new Error(
-        `Не удалось получить изображение из R2: ${imageResponse.status}`
-      );
-    }
-
-    const imageBuffer = Buffer.from(
-      await imageResponse.arrayBuffer()
-    );
-
-    // Передаём изображение в OpenAI как файл
-    const imageFile = await toFile(
-      imageBuffer,
-      "product.png",
-      {
-        type: "image/png",
-      }
-    );
-
-    // Отправляем изображение на редактирование
-    const result = await openai.images.edit({
-      model: "gpt-image-2",
-      image: imageFile,
-      prompt: prompt,
-    });
-
-    return res.status(200).json({
-      success: true,
-      data: result.data,
-    });
-
-  } catch (error) {
-    console.error("OpenAI Image Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      error: error.message || "Image generation failed",
-    });
-  }
 }
