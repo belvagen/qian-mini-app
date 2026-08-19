@@ -318,6 +318,46 @@
             color: #888;
         }
 
+.result {
+    display: none;
+
+    margin-top: 28px;
+    padding: 18px;
+
+    background: white;
+    border-radius: 24px;
+
+    box-shadow:
+        0 5px 25px
+        rgba(0,0,0,0.05);
+}
+
+.result h2 {
+    margin: 0 0 14px;
+
+    font-size: 22px;
+}
+
+.result-image img {
+    display: block;
+
+    width: 100%;
+
+    border-radius: 17px;
+
+    background: #f1f1ef;
+}
+
+.result-status {
+    margin-top: 14px;
+
+    text-align: center;
+
+    color: #888;
+
+    font-size: 14px;
+}
+        
     </style>
 
 </head>
@@ -561,7 +601,27 @@
         >
             Подготавливаем запрос...
         </div>
+<div
+    class="result"
+    id="result"
+>
+    <h2>Результат QIAN</h2>
 
+    <div class="result-image">
+        <img
+            id="resultImage"
+            src=""
+            alt="Результат AI"
+        >
+    </div>
+
+    <div
+        class="result-status"
+        id="resultStatus"
+    >
+        Генерируем изображение...
+    </div>
+</div>
     </div>
 
 
@@ -619,7 +679,22 @@
             "status"
         );
 
+const result =
+    document.getElementById(
+        "result"
+    );
 
+const resultImage =
+    document.getElementById(
+        "resultImage"
+    );
+
+const resultStatus =
+    document.getElementById(
+        "resultStatus"
+    );
+
+    
 
     /*
      * SESSION
@@ -904,45 +979,134 @@
 
     function showTaskSelected() {
 
+    status.style.display = "block";
 
-        status.style.display =
-            "block";
+    status.textContent =
+        "Задача выбрана: " +
+        getTaskName(selectedTask);
+
+    console.log(
+        "QIAN image ID:",
+        uploadedImageId
+    );
+
+    console.log(
+        "QIAN task:",
+        selectedTask
+    );
+
+    generateImage();
+}
 
 
-        status.textContent =
-            "Задача выбрана: " +
-            getTaskName(selectedTask);
+async function generateImage() {
 
+    result.style.display = "block";
+
+    resultStatus.textContent =
+        "QIAN создаёт изображение...";
+
+    resultImage.src = "";
+
+    result.scrollIntoView({
+        behavior: "smooth"
+    });
+
+    try {
+
+        const prompts = {
+
+            model:
+                "Create a professional fashion photograph using the uploaded clothing item. Preserve the clothing item accurately, including its color, shape, material, details and proportions. Place it naturally on an attractive adult fashion model. Clean premium studio photography, realistic lighting, natural pose, commercial fashion catalog quality.",
+
+            product:
+                "Create a professional commercial product photograph of the uploaded item. Preserve the product exactly, including its shape, color, material and details. Use a clean premium studio background, realistic lighting and high-end e-commerce photography.",
+
+            marketplace:
+                "Create a professional marketplace product photograph using the uploaded item. Preserve the product accurately. Make the composition clean, attractive and commercial, with realistic studio lighting and a premium e-commerce photography style.",
+
+            enhance:
+                "Improve the uploaded product photograph while preserving the product exactly. Keep its original shape, color, material and details. Improve lighting, clarity, realism and overall commercial presentation. Do not change the product itself."
+        };
+
+        const prompt =
+            prompts[selectedTask] ||
+            prompts.enhance;
+
+        const response =
+            await fetch(
+                "/api/generate",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        imageKey:
+                            uploadedImageId,
+
+                        prompt:
+                            prompt
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
 
         console.log(
-            "QIAN image ID:",
-            uploadedImageId
+            "QIAN AI response:",
+            data
         );
 
+        if (
+            !response.ok ||
+            !data.success
+        ) {
 
-        console.log(
-            "QIAN task:",
-            selectedTask
+            throw new Error(
+                data.message ||
+                "Не удалось создать изображение"
+            );
+        }
+
+        if (
+            !data.data ||
+            !data.data[0] ||
+            !data.data[0].b64_json
+        ) {
+
+            throw new Error(
+                "GPT Image 2 не вернул изображение"
+            );
+        }
+
+        const base64 =
+            data.data[0].b64_json;
+
+        resultImage.src =
+            "data:image/png;base64," +
+            base64;
+
+        resultStatus.textContent =
+            "Готово ✓";
+
+    } catch (error) {
+
+        console.error(
+            "QIAN generation error:",
+            error
         );
 
-
-        /*
-         * Temporary message.
-         *
-         * AI generation will be
-         * connected on the next step.
-         */
-
-        tg.showAlert(
-            "Фото загружено ✓\n\n" +
-            "Задача: " +
-            getTaskName(selectedTask)
-        );
-
+        resultStatus.textContent =
+            "Ошибка: " +
+            error.message;
     }
-
-
-
+}
+    
     /*
      * TASK NAME
      */
