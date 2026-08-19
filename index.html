@@ -14,18 +14,14 @@
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-
     <style>
 
         * {
             box-sizing: border-box;
         }
 
-
         body {
-
             margin: 0;
-
             font-family:
                 -apple-system,
                 BlinkMacSystemFont,
@@ -34,187 +30,111 @@
                 sans-serif;
 
             background: #f7f7f5;
-
             color: #111;
         }
 
-
         .app {
-
             min-height: 100vh;
-
-            padding:
-                24px
-                18px
-                40px;
+            padding: 24px 18px 40px;
         }
 
-
         .header {
-
             display: flex;
-
-            justify-content:
-                space-between;
-
+            justify-content: space-between;
             align-items: center;
         }
 
-
         .logo {
-
             font-size: 27px;
-
             font-weight: 800;
-
             letter-spacing: 4px;
         }
 
-
         .version {
-
             color: #999;
-
             font-size: 12px;
         }
 
-
         .hero {
-
-            margin-top: 45px;
+            margin-top: 42px;
         }
 
-
         .hero h1 {
-
             margin: 0;
-
             font-size: 31px;
-
             line-height: 1.08;
-
             letter-spacing: -1px;
         }
 
-
         .hero p {
-
             margin-top: 15px;
-
             font-size: 16px;
-
             line-height: 1.5;
-
             color: #777;
         }
 
-
         .upload-card {
-
-            margin-top: 30px;
-
-            padding:
-                26px
-                20px;
-
+            margin-top: 28px;
+            padding: 24px 20px;
             background: white;
-
             border-radius: 24px;
-
             text-align: center;
-
             box-shadow:
                 0 5px 25px
                 rgba(0,0,0,0.05);
         }
 
-
         .upload-icon {
-
-            width: 62px;
-
-            height: 62px;
-
-            margin:
-                0
-                auto
-                18px;
-
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 17px;
             border-radius: 18px;
-
             background: #f1f1ef;
 
             display: flex;
-
             align-items: center;
-
             justify-content: center;
 
-            font-size: 30px;
+            font-size: 28px;
         }
 
-
         .upload-card h2 {
-
             margin: 0;
-
             font-size: 20px;
         }
 
-
         .upload-card p {
-
-            margin:
-                9px
-                0
-                0;
-
+            margin: 8px 0 0;
             color: #888;
-
             font-size: 14px;
         }
 
-
         .upload-button {
-
             display: block;
-
             width: 100%;
-
-            margin-top: 22px;
-
+            margin-top: 21px;
             padding: 16px;
 
             border-radius: 15px;
-
             background: #111;
-
             color: white;
 
             font-size: 16px;
-
             font-weight: 600;
 
             cursor: pointer;
         }
 
-
         #fileInput {
-
             display: none;
         }
 
-
         .preview {
-
             display: none;
-
-            margin-top: 25px;
-
+            margin-top: 24px;
             padding: 15px;
 
             background: white;
-
             border-radius: 24px;
 
             box-shadow:
@@ -222,122 +142,180 @@
                 rgba(0,0,0,0.05);
         }
 
-
         .preview img {
-
             display: block;
-
             width: 100%;
-
-            max-height: 400px;
+            max-height: 420px;
 
             object-fit: contain;
 
             border-radius: 17px;
-
             background: #f1f1ef;
         }
 
-
         .preview-title {
-
-            margin-top: 15px;
+            margin-top: 14px;
 
             font-size: 18px;
-
             font-weight: 700;
         }
 
-
-        .options {
-
+        .task-section {
             display: none;
-
-            margin-top: 25px;
+            margin-top: 28px;
         }
 
-
-        .options h2 {
-
-            margin-bottom: 14px;
-
-            font-size: 20px;
+        .task-section h2 {
+            margin: 0;
+            font-size: 22px;
+            letter-spacing: -0.4px;
         }
 
+        .task-section p {
+            margin: 7px 0 16px;
 
-        .option {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .task {
+            position: relative;
+
+            display: flex;
+            align-items: center;
 
             padding: 17px;
-
             margin-bottom: 10px;
 
             background: white;
+            border-radius: 18px;
 
-            border-radius: 16px;
-
-            border:
-                2px solid
-                transparent;
+            border: 2px solid transparent;
 
             cursor: pointer;
+
+            transition:
+                border-color 0.15s,
+                transform 0.15s;
         }
 
+        .task:active {
+            transform: scale(0.98);
+        }
 
-        .option.active {
-
+        .task.active {
             border-color: #111;
         }
 
+        .task-icon {
+            width: 46px;
+            height: 46px;
 
-        .option-title {
+            flex-shrink: 0;
 
-            font-size: 16px;
+            border-radius: 14px;
 
-            font-weight: 600;
+            background: #f1f1ef;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 22px;
         }
 
+        .task-content {
+            margin-left: 13px;
+            padding-right: 10px;
+        }
 
-        .option-description {
+        .task-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
 
-            margin-top: 5px;
+        .task-description {
+            margin-top: 4px;
 
             font-size: 13px;
+            line-height: 1.35;
 
             color: #888;
         }
 
+        .task-check {
+            margin-left: auto;
+
+            width: 22px;
+            height: 22px;
+
+            border-radius: 50%;
+
+            border: 1.5px solid #ccc;
+
+            flex-shrink: 0;
+        }
+
+        .task.active .task-check {
+            background: #111;
+            border-color: #111;
+
+            position: relative;
+        }
+
+        .task.active .task-check::after {
+            content: "✓";
+
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            transform:
+                translate(-50%, -50%);
+
+            color: white;
+
+            font-size: 13px;
+            font-weight: 700;
+        }
 
         .continue-button {
-
             display: none;
 
             width: 100%;
 
-            margin-top: 20px;
+            margin-top: 18px;
 
             padding: 17px;
 
             border: none;
-
-            border-radius: 15px;
+            border-radius: 16px;
 
             background: #111;
-
             color: white;
 
             font-size: 16px;
-
             font-weight: 600;
 
             cursor: pointer;
         }
 
-
         .continue-button:disabled {
-
             opacity: 0.6;
-
             cursor: default;
+        }
+
+        .status {
+            display: none;
+
+            margin-top: 14px;
+
+            text-align: center;
+
+            font-size: 13px;
+
+            color: #888;
         }
 
     </style>
@@ -350,6 +328,8 @@
 
 <div class="app">
 
+
+    <!-- HEADER -->
 
     <div class="header">
 
@@ -364,61 +344,46 @@
     </div>
 
 
+    <!-- HERO -->
+
     <div class="hero">
 
         <h1>
-
             Создайте новое<br>
-
             изображение
-
         </h1>
 
-
         <p>
-
             Загрузите фотографию товара,
-            а QIAN подготовит визуал
-            для вашего магазина.
-
+            а QIAN подготовит нужный визуал
+            с помощью AI.
         </p>
 
     </div>
 
 
+    <!-- UPLOAD -->
+
     <div class="upload-card">
 
-
         <div class="upload-icon">
-
             +
-
         </div>
 
-
         <h2>
-
             Загрузите товар
-
         </h2>
 
-
         <p>
-
-            JPG или PNG · до 10 МБ
-
+            JPG, PNG или WEBP · до 10 МБ
         </p>
-
 
         <label
             for="fileInput"
             class="upload-button"
         >
-
             Выбрать фотографию
-
         </label>
-
 
         <input
             id="fileInput"
@@ -426,15 +391,15 @@
             accept="image/jpeg,image/png,image/webp"
         >
 
-
     </div>
 
+
+    <!-- PREVIEW -->
 
     <div
         class="preview"
         id="preview"
     >
-
 
         <img
             id="previewImage"
@@ -442,92 +407,141 @@
             alt="Товар"
         >
 
-
         <div class="preview-title">
-
             Ваш товар
-
         </div>
-
 
     </div>
 
 
+    <!-- TASKS -->
+
     <div
-        class="options"
-        id="options"
+        class="task-section"
+        id="taskSection"
     >
 
-
         <h2>
-
-            Что создать?
-
+            Что сделать с товаром?
         </h2>
 
+        <p>
+            Выберите задачу — QIAN подготовит изображение.
+        </p>
+
+
+        <!-- MODEL -->
 
         <div
-            class="option active"
-            onclick="selectOption(this)"
+            class="task active"
+            data-task="model"
+            onclick="selectTask(this)"
         >
 
-            <div class="option-title">
+            <div class="task-icon">
+                👗
+            </div>
 
-                Фото на модели
+            <div class="task-content">
+
+                <div class="task-title">
+                    Фото на модели
+                </div>
+
+                <div class="task-description">
+                    Покажем товар на подходящей модели
+                </div>
 
             </div>
 
-
-            <div class="option-description">
-
-                Покажем товар
-                на подходящей модели
-
-            </div>
+            <div class="task-check"></div>
 
         </div>
 
 
+        <!-- PRODUCT -->
+
         <div
-            class="option"
-            onclick="selectOption(this)"
+            class="task"
+            data-task="product"
+            onclick="selectTask(this)"
         >
 
-            <div class="option-title">
+            <div class="task-icon">
+                📸
+            </div>
 
-                Предметное фото
+            <div class="task-content">
+
+                <div class="task-title">
+                    Предметное фото
+                </div>
+
+                <div class="task-description">
+                    Создадим профессиональную съёмку товара
+                </div>
 
             </div>
 
-
-            <div class="option-description">
-
-                Создадим
-                профессиональную съёмку товара
-
-            </div>
+            <div class="task-check"></div>
 
         </div>
 
 
+        <!-- MARKETPLACE -->
+
         <div
-            class="option"
-            onclick="selectOption(this)"
+            class="task"
+            data-task="marketplace"
+            onclick="selectTask(this)"
         >
 
-            <div class="option-title">
+            <div class="task-icon">
+                🛍️
+            </div>
 
-                Фото для карточки
+            <div class="task-content">
+
+                <div class="task-title">
+                    Карточка товара
+                </div>
+
+                <div class="task-description">
+                    Подготовим визуал для маркетплейса
+                </div>
 
             </div>
 
+            <div class="task-check"></div>
 
-            <div class="option-description">
+        </div>
 
-                Подготовим визуал
-                для маркетплейса
+
+        <!-- ENHANCE -->
+
+        <div
+            class="task"
+            data-task="enhance"
+            onclick="selectTask(this)"
+        >
+
+            <div class="task-icon">
+                ✨
+            </div>
+
+            <div class="task-content">
+
+                <div class="task-title">
+                    Улучшить фото
+                </div>
+
+                <div class="task-description">
+                    Повысим качество и сделаем изображение аккуратнее
+                </div>
 
             </div>
+
+            <div class="task-check"></div>
 
         </div>
 
@@ -537,11 +551,16 @@
             id="continueButton"
             onclick="continueApp()"
         >
-
             Продолжить →
-
         </button>
 
+
+        <div
+            class="status"
+            id="status"
+        >
+            Подготавливаем запрос...
+        </div>
 
     </div>
 
@@ -554,12 +573,11 @@
 
 
     /*
-     * Telegram
+     * TELEGRAM
      */
 
     const tg =
         window.Telegram.WebApp;
-
 
     tg.ready();
 
@@ -568,7 +586,7 @@
 
 
     /*
-     * Elements
+     * ELEMENTS
      */
 
     const fileInput =
@@ -576,44 +594,50 @@
             "fileInput"
         );
 
-
     const preview =
         document.getElementById(
             "preview"
         );
-
 
     const previewImage =
         document.getElementById(
             "previewImage"
         );
 
-
-    const options =
+    const taskSection =
         document.getElementById(
-            "options"
+            "taskSection"
         );
-
 
     const continueButton =
         document.getElementById(
             "continueButton"
         );
 
+    const status =
+        document.getElementById(
+            "status"
+        );
+
 
 
     /*
-     * Current session
+     * SESSION
      */
 
     let selectedFile = null;
 
-    let uploadedImageId = null;
+    let uploadedImageId =
+        sessionStorage.getItem(
+            "qian_image_id"
+        );
+
+    let selectedTask = "model";
 
 
 
     /*
-     * Select image
+     * FILE SELECT
      */
 
     fileInput.addEventListener(
@@ -626,14 +650,12 @@
 
 
             if (!file) {
-
                 return;
-
             }
 
 
             /*
-             * Check file size
+             * SIZE CHECK
              */
 
             const maxSize =
@@ -649,12 +671,11 @@
                 fileInput.value = "";
 
                 return;
-
             }
 
 
             /*
-             * Remember file
+             * SAVE FILE
              */
 
             selectedFile =
@@ -662,7 +683,7 @@
 
 
             /*
-             * Preview
+             * PREVIEW
              */
 
             const imageURL =
@@ -679,7 +700,11 @@
                 "block";
 
 
-            options.style.display =
+            /*
+             * SHOW TASKS
+             */
+
+            taskSection.style.display =
                 "block";
 
 
@@ -697,24 +722,24 @@
 
 
     /*
-     * Select task
+     * SELECT TASK
      */
 
-    function selectOption(
+    function selectTask(
         element
     ) {
 
 
-        const allOptions =
+        const tasks =
             document.querySelectorAll(
-                ".option"
+                ".task"
             );
 
 
-        allOptions.forEach(
-            function (option) {
+        tasks.forEach(
+            function (task) {
 
-                option.classList.remove(
+                task.classList.remove(
                     "active"
                 );
 
@@ -726,12 +751,22 @@
             "active"
         );
 
+
+        selectedTask =
+            element.dataset.task;
+
+
+        console.log(
+            "QIAN selected task:",
+            selectedTask
+        );
+
     }
 
 
 
     /*
-     * Upload image
+     * UPLOAD
      */
 
     async function continueApp() {
@@ -742,6 +777,19 @@
             tg.showAlert(
                 "Сначала выберите фотографию."
             );
+
+            return;
+        }
+
+
+        /*
+         * If image already uploaded,
+         * don't upload it again.
+         */
+
+        if (uploadedImageId) {
+
+            showTaskSelected();
 
             return;
 
@@ -796,17 +844,9 @@
             ) {
 
 
-                /*
-                 * Save image ID
-                 */
-
                 uploadedImageId =
                     result.file.key;
 
-
-                /*
-                 * Save for this browser session
-                 */
 
                 sessionStorage.setItem(
                     "qian_image_id",
@@ -814,15 +854,7 @@
                 );
 
 
-                console.log(
-                    "QIAN image ID:",
-                    uploadedImageId
-                );
-
-
-                tg.showAlert(
-                    "Фото загружено ✓"
-                );
+                showTaskSelected();
 
 
             } else {
@@ -861,6 +893,86 @@
                 "Продолжить →";
 
         }
+
+    }
+
+
+
+    /*
+     * AFTER UPLOAD
+     */
+
+    function showTaskSelected() {
+
+
+        status.style.display =
+            "block";
+
+
+        status.textContent =
+            "Задача выбрана: " +
+            getTaskName(selectedTask);
+
+
+        console.log(
+            "QIAN image ID:",
+            uploadedImageId
+        );
+
+
+        console.log(
+            "QIAN task:",
+            selectedTask
+        );
+
+
+        /*
+         * Temporary message.
+         *
+         * AI generation will be
+         * connected on the next step.
+         */
+
+        tg.showAlert(
+            "Фото загружено ✓\n\n" +
+            "Задача: " +
+            getTaskName(selectedTask)
+        );
+
+    }
+
+
+
+    /*
+     * TASK NAME
+     */
+
+    function getTaskName(
+        task
+    ) {
+
+
+        const names = {
+
+            model:
+                "Фото на модели",
+
+            product:
+                "Предметное фото",
+
+            marketplace:
+                "Карточка товара",
+
+            enhance:
+                "Улучшить фото"
+
+        };
+
+
+        return (
+            names[task] ||
+            "Неизвестная задача"
+        );
 
     }
 
