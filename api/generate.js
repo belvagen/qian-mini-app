@@ -43,11 +43,8 @@ export default async function handler(req, res) {
     if (req.method !== "POST") {
 
         return res.status(405).json({
-
             success: false,
-
             message: "Method not allowed"
-
         });
 
     }
@@ -64,11 +61,8 @@ export default async function handler(req, res) {
         if (!imageKey) {
 
             return res.status(400).json({
-
                 success: false,
-
                 message: "Image key is required"
-
             });
 
         }
@@ -77,18 +71,15 @@ export default async function handler(req, res) {
         if (!prompt) {
 
             return res.status(400).json({
-
                 success: false,
-
                 message: "Prompt is required"
-
             });
 
         }
 
 
         /*
-         * Получаем исходное изображение
+         * 1. Получаем изображение
          * из приватного R2
          */
 
@@ -120,12 +111,16 @@ export default async function handler(req, res) {
             );
 
 
+        /*
+         * 2. Base64
+         */
+
         const imageBase64 =
             imageBuffer.toString("base64");
 
 
         /*
-         * Cloudflare Workers AI
+         * 3. Cloudflare credentials
          */
 
         const accountId =
@@ -144,51 +139,60 @@ export default async function handler(req, res) {
         }
 
 
+        /*
+         * 4. DreamShaper 8 LCM
+         */
+
         const endpoint =
-            `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/stabilityai/stable-diffusion-xl-base-1.0`;
+            `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/lykon/dreamshaper-8-lcm`;
 
 
-        const aiResponse = await fetch(
+        const aiResponse =
+            await fetch(
 
-            endpoint,
+                endpoint,
 
-            {
+                {
 
-                method: "POST",
+                    method: "POST",
 
-                headers: {
+                    headers: {
 
-                    "Authorization":
-                        `Bearer ${apiToken}`,
+                        "Authorization":
+                            `Bearer ${apiToken}`,
 
-                    "Content-Type":
-                        "application/json"
+                        "Content-Type":
+                            "application/json"
 
-                },
+                    },
 
-                body: JSON.stringify({
+                    body: JSON.stringify({
 
-                    prompt: prompt,
+                        prompt: prompt,
 
-                    image_b64:
-                        imageBase64,
+                        image_b64:
+                            imageBase64,
 
-                    strength: 0.55,
+                        strength: 0.45,
 
-                    guidance: 7.5,
+                        guidance: 7.5,
 
-                    num_steps: 20,
+                        num_steps: 20,
 
-                    width: 768,
+                        width: 768,
 
-                    height: 1024
+                        height: 1024
 
-                })
+                    })
 
-            }
+                }
 
-        );
+            );
 
+
+        /*
+         * 5. Проверяем HTTP
+         */
 
         if (!aiResponse.ok) {
 
@@ -196,7 +200,7 @@ export default async function handler(req, res) {
                 await aiResponse.text();
 
             console.error(
-                "Cloudflare HTTP error:",
+                "Cloudflare AI HTTP error:",
                 errorText
             );
 
@@ -208,8 +212,8 @@ export default async function handler(req, res) {
 
 
         /*
-         * Для image generation Cloudflare
-         * возвращает бинарное изображение.
+         * 6. Получаем бинарное
+         * изображение
          */
 
         const outputBuffer =
@@ -227,16 +231,25 @@ export default async function handler(req, res) {
         }
 
 
+        /*
+         * 7. Преобразуем в Base64
+         */
+
         const outputBase64 =
             outputBuffer.toString("base64");
 
 
         console.log(
-            "QIAN Cloudflare image generated:",
+            "QIAN image generated:",
             outputBuffer.length,
             "bytes"
         );
 
+
+        /*
+         * 8. Возвращаем результат
+         * в формате нашего index.html
+         */
 
         return res.status(200).json({
 
