@@ -88,7 +88,7 @@ export default async function handler(req, res) {
 
 
         /*
-         * Получаем оригинальное изображение
+         * Получаем изображение
          * из приватного R2
          */
 
@@ -121,6 +121,15 @@ export default async function handler(req, res) {
 
 
         /*
+         * Преобразуем исходное изображение
+         * в Base64
+         */
+
+        const imageBase64 =
+            imageBuffer.toString("base64");
+
+
+        /*
          * Cloudflare credentials
          */
 
@@ -141,31 +150,11 @@ export default async function handler(req, res) {
 
 
         /*
-         * Преобразуем Buffer
-         * в обычный массив байтов.
-         *
-         * Cloudflare официально принимает
-         * параметр image как массив 8-bit
-         * unsigned integers.
-         */
-
-        const imageBytes =
-            Array.from(imageBuffer);
-
-
-        console.log(
-            "QIAN input image:",
-            imageBuffer.length,
-            "bytes"
-        );
-
-
-        /*
-         * Cloudflare DreamShaper
+         * SDXL-Lightning
          */
 
         const endpoint =
-            `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/lykon/dreamshaper-8-lcm`;
+            `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/bytedance/stable-diffusion-xl-lightning`;
 
 
         const aiResponse =
@@ -190,31 +179,24 @@ export default async function handler(req, res) {
                     body: JSON.stringify({
 
                         prompt:
-
                             prompt,
 
-                        image:
-
-                            imageBytes,
+                        image_b64:
+                            imageBase64,
 
                         strength:
-
                             0.45,
 
                         guidance:
-
                             7.5,
 
                         num_steps:
-
-                            20,
+                            4,
 
                         width:
-
                             768,
 
                         height:
-
                             1024
 
                     })
@@ -225,7 +207,7 @@ export default async function handler(req, res) {
 
 
         /*
-         * Проверяем ответ Cloudflare
+         * Проверяем HTTP-ответ
          */
 
         if (!aiResponse.ok) {
@@ -246,8 +228,8 @@ export default async function handler(req, res) {
 
 
         /*
-         * Cloudflare возвращает
-         * бинарное изображение.
+         * Получаем готовое изображение
+         * как бинарные данные
          */
 
         const outputBuffer =
@@ -266,14 +248,12 @@ export default async function handler(req, res) {
 
 
         /*
-         * Переводим результат
-         * в Base64 для index.html
+         * Преобразуем результат
+         * в Base64 для QIAN
          */
 
         const outputBase64 =
-            outputBuffer.toString(
-                "base64"
-            );
+            outputBuffer.toString("base64");
 
 
         console.log(
