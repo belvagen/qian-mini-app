@@ -1,113 +1,333 @@
-import OpenAI, { toFile } from "openai";
 import {
     S3Client,
-    GetObjectCommand,
+    GetObjectCommand
 } from "@aws-sdk/client-s3";
 
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
 
 const s3 = new S3Client({
+
     region: "auto",
-    endpoint: process.env.R2_ENDPOINT,
+
+    endpoint:
+        process.env.R2_ENDPOINT,
+
     credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID,
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-    },
+
+        accessKeyId:
+            process.env.R2_ACCESS_KEY_ID,
+
+        secretAccessKey:
+            process.env.R2_SECRET_ACCESS_KEY
+
+    }
+
 });
 
-export default async function handler(request, response) {
 
-    if (request.method !== "POST") {
-        return response.status(405).json({
-            success: false,
-            message: "Используйте POST-запрос",
-        });
+async function streamToBuffer(stream) {
+
+    const chunks = [];
+
+    for await (
+        const chunk of stream
+    ) {
+
+        chunks.push(chunk);
+
     }
+
+    return Buffer.concat(chunks);
+
+}
+
+
+export default async function handler(
+    req,
+    res
+) {
+
+    if (req.method !== "POST") {
+
+        return res.status(405).json({
+
+            success: false,
+
+            message:
+                "Method not allowed"
+
+        });
+
+    }
+
 
     try {
 
-        const { prompt, imageKey } = request.body;
+        const {
+            imageKey,
+            prompt
+        } = req.body;
 
-        if (!prompt) {
-            return response.status(400).json({
-                success: false,
-                message: "Не указан prompt",
-            });
-        }
 
         if (!imageKey) {
-            return response.status(400).json({
+
+            return res.status(400).json({
+
                 success: false,
-                message: "Не указан imageKey",
+
+                message:
+                    "Image key is required"
+
             });
+
         }
 
-        // Получаем фотографию из R2
-        const object = await s3.send(
-            new GetObjectCommand({
-                Bucket: "qian-images",
-                Key: imageKey,
-            })
-        );
 
-        if (!object.Body) {
-            throw new Error("Фотография не найдена в R2");
+        if (!prompt) {
+
+            return res.status(400).json({
+
+                success: false,
+
+                message:
+                    "Prompt is required"
+
+            });
+
         }
 
-        // Преобразуем файл R2 в Buffer
-        const imageBuffer = Buffer.from(
-            await object.Body.transformToByteArray()
+
+        /*
+         * 1.
+         * Получаем изображение
+         * непосредственно из приватного R2
+         */
+
+        const r2Response =
+            await s3.send(
+
+                new GetObjectCommand({
+
+                    Bucket:
+                        "qian-images",
+
+                    Key:
+                        imageKey
+
+                })
+
+            );
+
+
+        if (!r2Response.Body) {
+
+            throw new Error(
+                "Image not found in R2"
+            );
+
+        }
+
+
+        const imageBuffer =
+            await streamToBuffer(
+                r2Response.Body
+            );
+
+
+        /*
+         * 2.
+         * Преобразуем изображение
+         * в base64
+         */
+
+        const imageBase64 =
+            imageBuffer.toString(
+                "base64"
+            );
+
+
+        /*
+         * 3.
+         * Отправляем изображение
+         * в Cloudflare Workers AI
+         */
+
+        const accountId =
+            process.env.CF_ACCOUNT_ID;
+
+        const apiToken =
+            process.env.CF_API_TOKEN;
+
+
+        if (
+            !accountId ||
+            !apiToken
+        ) {
+
+            throw new Error(
+                "Cloudflare AI credentials are missing"
+            );
+
+        }
+
+
+        const aiResponse =
+            await fetch(
+
+                `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/runwayml/stable-diffusion-v1-5-img2img`,
+
+                {
+
+                    method:
+                        "POST",
+
+                    headers: {
+
+                        "Authorization":
+                            `Bearer ${apiToken}`,
+
+                        "Content-Type":
+                            "application/json"
+
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            prompt:
+                                prompt,
+
+                            image_b64:
+                                imageBase64,
+
+                            strength:
+                                0.65,
+
+                            num_steps:
+                                20,
+
+                            guidance:
+                                7.5
+
+                        })
+
+                }
+
+            );
+
+
+        /*
+         * 4.
+         * Получаем ответ
+         */
+
+        const aiData =
+            await aiResponse.json();
+
+
+        console.log(
+            "Cloudflare AI:",
+            aiData
         );
 
-        // Определяем тип изображения
-        const contentType =
-            object.ContentType || "image/jpeg";
 
-        // Превращаем Buffer в файл для OpenAI
-        const imageFile = await toFile(
-            imageBuffer,
-            "qian-image",
-            {
-                type: contentType,
-            }
-        );
+        if (
+            !aiResponse.ok ||
+            !aiData.success
+        ) {
 
-        console.log("Отправляем изображение в GPT Image 2");
+            throw new Error(
 
-        // Редактируем изображение через GPT Image 2
-        const result = await openai.images.edit({
-            model: "gpt-image-2",
-            image: imageFile,
-            prompt: prompt,
-        });
+                aiData.errors?.[0]?.message ||
 
-        return response.status(200).json({
+                "Cloudflare AI generation failed"
+
+            );
+
+        }
+
+
+        /*
+         * 5.
+         * Изображение возвращается
+         * в формате base64
+         */
+
+        let outputBase64;
+
+
+        if (
+            typeof aiData.result ===
+            "string"
+        ) {
+
+            outputBase64 =
+                aiData.result;
+
+        }
+
+        else if (
+            aiData.result?.image
+        ) {
+
+            outputBase64 =
+                aiData.result.image;
+
+        }
+
+        else {
+
+            throw new Error(
+                "Unexpected Cloudflare AI response"
+            );
+
+        }
+
+
+        /*
+         * 6.
+         * Возвращаем результат
+         * в формате, который уже
+         * понимает наш index.html
+         */
+
+        return res.status(200).json({
 
             success: true,
 
-            message: "Изображение создано",
+            data: [
 
-            data: result.data,
+                {
+
+                    b64_json:
+                        outputBase64
+
+                }
+
+            ]
 
         });
 
-    } catch (error) {
+
+    }
+
+    catch (error) {
 
         console.error(
-            "GPT Image 2 error:",
+            "QIAN generation error:",
             error
         );
 
-        return response.status(500).json({
+
+        return res.status(500).json({
 
             success: false,
 
             message:
                 error.message ||
-                "Ошибка генерации изображения",
+                "Image generation failed"
 
         });
+
     }
+
 }
