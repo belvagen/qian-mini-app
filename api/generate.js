@@ -22,6 +22,10 @@ async function streamToBuffer(stream) {
     return Buffer.concat(chunks);
 }
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export default async function handler(req, res) {
 
     if (req.method !== "POST") {
@@ -53,7 +57,7 @@ export default async function handler(req, res) {
         }
 
         /*
-         * Получаем фотографию из R2
+         * Получаем изображение из R2
          */
 
         const r2Object = await s3.send(
@@ -64,20 +68,11 @@ export default async function handler(req, res) {
         );
 
         if (!r2Object.Body) {
-            throw new Error(
-                "Image not found in R2"
-            );
+            throw new Error("Image not found in R2");
         }
 
         const imageBuffer =
-            await streamToBuffer(
-                r2Object.Body
-            );
-
-        /*
-         * Переводим изображение
-         * в Base64
-         */
+            await streamToBuffer(r2Object.Body);
 
         const imageBase64 =
             imageBuffer.toString("base64");
@@ -89,7 +84,7 @@ export default async function handler(req, res) {
         );
 
         /*
-         * Cloudflare credentials
+         * Cloudflare
          */
 
         const accountId =
@@ -104,107 +99,153 @@ export default async function handler(req, res) {
             );
         }
 
-        /*
-         * Stable Diffusion v1.5 img2img
-         */
-
         const endpoint =
             `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/runwayml/stable-diffusion-v1-5-img2img`;
 
-        const aiResponse =
-            await fetch(
-                endpoint,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Authorization":
-                            `Bearer ${apiToken}`,
-
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        prompt: prompt,
-
-                        image_b64:
-                            imageBase64,
-
-                        strength: 0.45,
-
-                        num_steps: 20,
-
-                        width: 768,
-
-                        height: 1024
-
-                    })
-                }
-            );
-
         /*
-         * Проверяем ответ
+         * Максимум 3 попытки
          */
 
-        if (!aiResponse.ok) {
+        const delays = [
+            0,
+            3000,
+            6000
+        ];
+
+        let lastError = null;
+
+        for (let attempt = 0; attempt < 3; attempt++) {
+
+            if (delays[attempt] > 0) {
+
+                console.log(
+                    `QIAN retry ${attempt + 1}/3 after ${delays[attempt]}ms`
+                );
+
+                await sleep(
+                    delays[attempt]
+                );
+
+            }
+
+            console.log(
+                `QIAN AI attempt ${attempt + 1}/3`
+            );
+
+            const aiResponse =
+                await fetch(
+                    endpoint,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Authorization":
+                                `Bearer ${apiToken}`,
+
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            prompt:
+                                prompt,
+
+                            image_b64:
+                                imageBase64,
+
+                            strength:
+                                0.45,
+
+                            num_steps:
+                                20,
+
+                            width:
+                                768,
+
+                            height:
+                                1024
+
+                        })
+                    }
+                );
+
+            /*
+             * Успешный ответ
+             */
+
+            if (aiResponse.ok) {
+
+                const outputBuffer =
+                    Buffer.from(
+                        await aiResponse.arrayBuffer()
+                    );
+
+                if (!outputBuffer.length) {
+                    throw new Error(
+                        "Cloudflare returned an empty image"
+                    );
+                }
+
+                const outputBase64 =
+                    outputBuffer.toString(
+                        "base64"
+                    );
+
+                console.log(
+                    "QIAN output image:",
+                    outputBuffer.length,
+                    "bytes"
+                );
+
+                return res.status(200).json({
+
+                    success: true,
+
+                    data: [
+                        {
+                            b64_json:
+                                outputBase64
+                        }
+                    ]
+
+                });
+            }
+
+            /*
+             * Ошибка
+             */
 
             const errorText =
                 await aiResponse.text();
 
             console.error(
-                "Cloudflare AI HTTP error:",
+                `Cloudflare AI attempt ${attempt + 1}:`,
                 errorText
             );
 
-            throw new Error(
-                `Cloudflare AI HTTP ${aiResponse.status}: ${errorText}`
-            );
+            lastError =
+                new Error(
+                    `Cloudflare AI HTTP ${aiResponse.status}: ${errorText}`
+                );
+
+            /*
+             * Повторяем только 429
+             */
+
+            if (aiResponse.status !== 429) {
+                break;
+            }
         }
 
         /*
-         * Получаем изображение
+         * Все попытки закончились
          */
 
-        const outputBuffer =
-            Buffer.from(
-                await aiResponse.arrayBuffer()
+        throw lastError ||
+            new Error(
+                "Cloudflare AI generation failed"
             );
-
-        if (!outputBuffer.length) {
-            throw new Error(
-                "Cloudflare returned an empty image"
-            );
-        }
-
-        /*
-         * Результат → Base64
-         */
-
-        const outputBase64 =
-            outputBuffer.toString(
-                "base64"
-            );
-
-        console.log(
-            "QIAN output image:",
-            outputBuffer.length,
-            "bytes"
-        );
-
-        return res.status(200).json({
-
-            success: true,
-
-            data: [
-                {
-                    b64_json:
-                        outputBase64
-                }
-            ]
-
-        });
 
     } catch (error) {
 
@@ -222,6 +263,5 @@ export default async function handler(req, res) {
                 "Image generation failed"
 
         });
-
     }
 }
