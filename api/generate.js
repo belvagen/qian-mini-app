@@ -43,8 +43,11 @@ export default async function handler(req, res) {
     if (req.method !== "POST") {
 
         return res.status(405).json({
+
             success: false,
+
             message: "Method not allowed"
+
         });
 
     }
@@ -61,8 +64,11 @@ export default async function handler(req, res) {
         if (!imageKey) {
 
             return res.status(400).json({
+
                 success: false,
+
                 message: "Image key is required"
+
             });
 
         }
@@ -71,15 +77,18 @@ export default async function handler(req, res) {
         if (!prompt) {
 
             return res.status(400).json({
+
                 success: false,
+
                 message: "Prompt is required"
+
             });
 
         }
 
 
         /*
-         * 1. Получаем изображение
+         * Получаем оригинальное изображение
          * из приватного R2
          */
 
@@ -112,15 +121,7 @@ export default async function handler(req, res) {
 
 
         /*
-         * 2. Base64
-         */
-
-        const imageBase64 =
-            imageBuffer.toString("base64");
-
-
-        /*
-         * 3. Cloudflare credentials
+         * Cloudflare credentials
          */
 
         const accountId =
@@ -140,7 +141,27 @@ export default async function handler(req, res) {
 
 
         /*
-         * 4. DreamShaper 8 LCM
+         * Преобразуем Buffer
+         * в обычный массив байтов.
+         *
+         * Cloudflare официально принимает
+         * параметр image как массив 8-bit
+         * unsigned integers.
+         */
+
+        const imageBytes =
+            Array.from(imageBuffer);
+
+
+        console.log(
+            "QIAN input image:",
+            imageBuffer.length,
+            "bytes"
+        );
+
+
+        /*
+         * Cloudflare DreamShaper
          */
 
         const endpoint =
@@ -168,20 +189,33 @@ export default async function handler(req, res) {
 
                     body: JSON.stringify({
 
-                        prompt: prompt,
+                        prompt:
 
-                        image_b64:
-                            imageBase64,
+                            prompt,
 
-                        strength: 0.45,
+                        image:
 
-                        guidance: 7.5,
+                            imageBytes,
 
-                        num_steps: 20,
+                        strength:
 
-                        width: 768,
+                            0.45,
 
-                        height: 1024
+                        guidance:
+
+                            7.5,
+
+                        num_steps:
+
+                            20,
+
+                        width:
+
+                            768,
+
+                        height:
+
+                            1024
 
                     })
 
@@ -191,7 +225,7 @@ export default async function handler(req, res) {
 
 
         /*
-         * 5. Проверяем HTTP
+         * Проверяем ответ Cloudflare
          */
 
         if (!aiResponse.ok) {
@@ -212,8 +246,8 @@ export default async function handler(req, res) {
 
 
         /*
-         * 6. Получаем бинарное
-         * изображение
+         * Cloudflare возвращает
+         * бинарное изображение.
          */
 
         const outputBuffer =
@@ -232,24 +266,22 @@ export default async function handler(req, res) {
 
 
         /*
-         * 7. Преобразуем в Base64
+         * Переводим результат
+         * в Base64 для index.html
          */
 
         const outputBase64 =
-            outputBuffer.toString("base64");
+            outputBuffer.toString(
+                "base64"
+            );
 
 
         console.log(
-            "QIAN image generated:",
+            "QIAN output image:",
             outputBuffer.length,
             "bytes"
         );
 
-
-        /*
-         * 8. Возвращаем результат
-         * в формате нашего index.html
-         */
 
         return res.status(200).json({
 
