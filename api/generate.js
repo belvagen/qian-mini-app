@@ -5,18 +5,10 @@ import {
 } from "@aws-sdk/client-s3";
 
 
-/*
- * OPENAI
- */
-
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
 
-
-/*
- * R2
- */
 
 const s3 = new S3Client({
 
@@ -37,18 +29,12 @@ const s3 = new S3Client({
 });
 
 
-/*
- * Convert R2 stream → Buffer
- */
-
 async function streamToBuffer(stream) {
 
     const chunks = [];
 
     for await (const chunk of stream) {
-
         chunks.push(chunk);
-
     }
 
     return Buffer.concat(chunks);
@@ -56,48 +42,25 @@ async function streamToBuffer(stream) {
 }
 
 
-/*
- * Detect MIME type
- */
-
 function getMimeType(key) {
 
     const extension =
-        key
-            .split(".")
-            .pop()
-            .toLowerCase();
-
+        key.split(".").pop().toLowerCase();
 
     if (extension === "png") {
-
         return "image/png";
-
     }
-
 
     if (extension === "webp") {
-
         return "image/webp";
-
     }
-
 
     return "image/jpeg";
 
 }
 
 
-/*
- * API
- */
-
 export default async function handler(req, res) {
-
-
-    /*
-     * Method
-     */
 
     if (req.method !== "POST") {
 
@@ -105,8 +68,7 @@ export default async function handler(req, res) {
 
             success: false,
 
-            message:
-                "Method not allowed"
+            message: "Method not allowed"
 
         });
 
@@ -115,20 +77,11 @@ export default async function handler(req, res) {
 
     try {
 
-
-        /*
-         * Request
-         */
-
         const {
             imageKey,
             prompt
         } = req.body;
 
-
-        /*
-         * Validation
-         */
 
         if (!imageKey) {
 
@@ -136,8 +89,7 @@ export default async function handler(req, res) {
 
                 success: false,
 
-                message:
-                    "Image key is required"
+                message: "Image key is required"
 
             });
 
@@ -150,17 +102,12 @@ export default async function handler(req, res) {
 
                 success: false,
 
-                message:
-                    "Prompt is required"
+                message: "Prompt is required"
 
             });
 
         }
 
-
-        /*
-         * Check OpenAI key
-         */
 
         if (!process.env.OPENAI_API_KEY) {
 
@@ -172,7 +119,7 @@ export default async function handler(req, res) {
 
 
         /*
-         * Get image from R2
+         * Получаем оригинал из R2
          */
 
         console.log(
@@ -186,11 +133,9 @@ export default async function handler(req, res) {
 
                 new GetObjectCommand({
 
-                    Bucket:
-                        "qian-images",
+                    Bucket: "qian-images",
 
-                    Key:
-                        imageKey
+                    Key: imageKey
 
                 })
 
@@ -205,10 +150,6 @@ export default async function handler(req, res) {
 
         }
 
-
-        /*
-         * Convert image
-         */
 
         const imageBuffer =
             await streamToBuffer(
@@ -241,25 +182,24 @@ export default async function handler(req, res) {
 
 
         /*
-         * Base64
+         * Создаём настоящий File,
+         * а не передаём строку.
          */
 
-        const imageBase64 =
-            imageBuffer.toString(
-                "base64"
+        const imageFile =
+            new File(
+                [
+                    imageBuffer
+                ],
+                "qian-input",
+                {
+                    type: mimeType
+                }
             );
 
 
         /*
-         * Data URL
-         */
-
-        const imageDataUrl =
-            `data:${mimeType};base64,${imageBase64}`;
-
-
-        /*
-         * OPENAI IMAGE EDIT
+         * OpenAI Image Edit
          */
 
         console.log(
@@ -274,7 +214,7 @@ export default async function handler(req, res) {
                     "gpt-image-2",
 
                 image:
-                    imageDataUrl,
+                    [imageFile],
 
                 prompt:
                     prompt,
@@ -289,7 +229,7 @@ export default async function handler(req, res) {
 
 
         /*
-         * Check result
+         * Проверяем результат
          */
 
         if (
@@ -326,7 +266,7 @@ export default async function handler(req, res) {
 
 
         /*
-         * Return to frontend
+         * Возвращаем результат
          */
 
         return res.status(200).json({
@@ -349,20 +289,14 @@ export default async function handler(req, res) {
 
     } catch (error) {
 
-
         console.error(
             "QIAN OpenAI generation error:",
             error
         );
 
 
-        /*
-         * OpenAI API error
-         */
-
         const status =
-            error.status ||
-            500;
+            error.status || 500;
 
 
         let message =
@@ -370,9 +304,13 @@ export default async function handler(req, res) {
             "Image generation failed";
 
 
-        /*
-         * Billing
-         */
+        if (status === 401) {
+
+            message =
+                "OpenAI API: проверьте OPENAI_API_KEY.";
+
+        }
+
 
         if (
             status === 400 &&
@@ -387,26 +325,10 @@ export default async function handler(req, res) {
         }
 
 
-        /*
-         * Rate limit
-         */
-
         if (status === 429) {
 
             message =
-                "OpenAI API: превышен лимит запросов или недостаточно доступного баланса.";
-
-        }
-
-
-        /*
-         * Authentication
-         */
-
-        if (status === 401) {
-
-            message =
-                "OpenAI API: проверьте OPENAI_API_KEY.";
+                "OpenAI API: превышен лимит или недостаточно доступного баланса.";
 
         }
 
@@ -416,7 +338,6 @@ export default async function handler(req, res) {
             success: false,
 
             message:
-
                 message
 
         });
