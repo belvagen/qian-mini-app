@@ -8,8 +8,7 @@ const s3 = new S3Client({
 
     region: "auto",
 
-    endpoint:
-        process.env.R2_ENDPOINT,
+    endpoint: process.env.R2_ENDPOINT,
 
     credentials: {
 
@@ -28,9 +27,7 @@ async function streamToBuffer(stream) {
 
     const chunks = [];
 
-    for await (
-        const chunk of stream
-    ) {
+    for await (const chunk of stream) {
 
         chunks.push(chunk);
 
@@ -41,10 +38,7 @@ async function streamToBuffer(stream) {
 }
 
 
-export default async function handler(
-    req,
-    res
-) {
+export default async function handler(req, res) {
 
     if (req.method !== "POST") {
 
@@ -52,8 +46,7 @@ export default async function handler(
 
             success: false,
 
-            message:
-                "Method not allowed"
+            message: "Method not allowed"
 
         });
 
@@ -74,8 +67,7 @@ export default async function handler(
 
                 success: false,
 
-                message:
-                    "Image key is required"
+                message: "Image key is required"
 
             });
 
@@ -88,8 +80,7 @@ export default async function handler(
 
                 success: false,
 
-                message:
-                    "Prompt is required"
+                message: "Prompt is required"
 
             });
 
@@ -97,28 +88,24 @@ export default async function handler(
 
 
         /*
-         * 1.
-         * Получаем изображение
-         * непосредственно из приватного R2
+         * Получаем исходное изображение
+         * из приватного R2
          */
 
-        const r2Response =
-            await s3.send(
+        const r2Object = await s3.send(
 
-                new GetObjectCommand({
+            new GetObjectCommand({
 
-                    Bucket:
-                        "qian-images",
+                Bucket: "qian-images",
 
-                    Key:
-                        imageKey
+                Key: imageKey
 
-                })
+            })
 
-            );
+        );
 
 
-        if (!r2Response.Body) {
+        if (!r2Object.Body) {
 
             throw new Error(
                 "Image not found in R2"
@@ -129,26 +116,16 @@ export default async function handler(
 
         const imageBuffer =
             await streamToBuffer(
-                r2Response.Body
+                r2Object.Body
             );
 
-
-        /*
-         * 2.
-         * Преобразуем изображение
-         * в base64
-         */
 
         const imageBase64 =
-            imageBuffer.toString(
-                "base64"
-            );
+            imageBuffer.toString("base64");
 
 
         /*
-         * 3.
-         * Отправляем изображение
-         * в Cloudflare Workers AI
+         * Cloudflare Workers AI
          */
 
         const accountId =
@@ -158,10 +135,7 @@ export default async function handler(
             process.env.CF_API_TOKEN;
 
 
-        if (
-            !accountId ||
-            !apiToken
-        ) {
+        if (!accountId || !apiToken) {
 
             throw new Error(
                 "Cloudflare AI credentials are missing"
@@ -170,125 +144,99 @@ export default async function handler(
         }
 
 
-        const aiResponse =
-            await fetch(
-
-                `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/runwayml/stable-diffusion-v1-5-img2img`,
-
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Authorization":
-                            `Bearer ${apiToken}`,
-
-                        "Content-Type":
-                            "application/json"
-
-                    },
-
-                    body:
-                        JSON.stringify({
-
-                            prompt:
-                                prompt,
-
-                            image_b64:
-                                imageBase64,
-
-                            strength:
-                                0.65,
-
-                            num_steps:
-                                20,
-
-                            guidance:
-                                7.5
-
-                        })
-
-                }
-
-            );
+        const endpoint =
+            `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/stabilityai/stable-diffusion-xl-base-1.0`;
 
 
-        /*
-         * 4.
-         * Получаем ответ
-         */
+        const aiResponse = await fetch(
 
-        const aiData =
-            await aiResponse.json();
+            endpoint,
 
+            {
 
-        console.log(
-            "Cloudflare AI:",
-            aiData
+                method: "POST",
+
+                headers: {
+
+                    "Authorization":
+                        `Bearer ${apiToken}`,
+
+                    "Content-Type":
+                        "application/json"
+
+                },
+
+                body: JSON.stringify({
+
+                    prompt: prompt,
+
+                    image_b64:
+                        imageBase64,
+
+                    strength: 0.55,
+
+                    guidance: 7.5,
+
+                    num_steps: 20,
+
+                    width: 768,
+
+                    height: 1024
+
+                })
+
+            }
+
         );
 
 
-        if (
-            !aiResponse.ok ||
-            !aiData.success
-        ) {
+        if (!aiResponse.ok) {
+
+            const errorText =
+                await aiResponse.text();
+
+            console.error(
+                "Cloudflare HTTP error:",
+                errorText
+            );
 
             throw new Error(
-
-                aiData.errors?.[0]?.message ||
-
-                "Cloudflare AI generation failed"
-
+                `Cloudflare AI HTTP ${aiResponse.status}: ${errorText}`
             );
 
         }
 
 
         /*
-         * 5.
-         * Изображение возвращается
-         * в формате base64
+         * Для image generation Cloudflare
+         * возвращает бинарное изображение.
          */
 
-        let outputBase64;
+        const outputBuffer =
+            Buffer.from(
+                await aiResponse.arrayBuffer()
+            );
 
 
-        if (
-            typeof aiData.result ===
-            "string"
-        ) {
-
-            outputBase64 =
-                aiData.result;
-
-        }
-
-        else if (
-            aiData.result?.image
-        ) {
-
-            outputBase64 =
-                aiData.result.image;
-
-        }
-
-        else {
+        if (!outputBuffer.length) {
 
             throw new Error(
-                "Unexpected Cloudflare AI response"
+                "Cloudflare returned an empty image"
             );
 
         }
 
 
-        /*
-         * 6.
-         * Возвращаем результат
-         * в формате, который уже
-         * понимает наш index.html
-         */
+        const outputBase64 =
+            outputBuffer.toString("base64");
+
+
+        console.log(
+            "QIAN Cloudflare image generated:",
+            outputBuffer.length,
+            "bytes"
+        );
+
 
         return res.status(200).json({
 
@@ -308,9 +256,7 @@ export default async function handler(
         });
 
 
-    }
-
-    catch (error) {
+    } catch (error) {
 
         console.error(
             "QIAN generation error:",
